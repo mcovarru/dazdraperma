@@ -1,6 +1,7 @@
 package org.topcoder.dazdraperma;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +26,44 @@ public class TreesCount {
     public int hashCode() {
       return num;
     }
+    
+    private void pathsWorker(Set<List<Edge>> paths, Set<Vertex> pointsSeen, List<Edge> pathSoFar, Vertex target) {
+      for (Edge edge : edges) {
+        if (edge.other(this).equals(target)) {
+          // found a path that ends on the target vertex
+          List<Edge> goodPath = new ArrayList<Edge>();
+          Collections.copy(pathSoFar, goodPath);
+          goodPath.add(edge);
+          paths.add(goodPath);
+          
+        }
+        else if (pointsSeen.contains(edge.other(this))) {
+          // cycle, ignore this edge
+        }
+        else {
+          // potentially interesting
+          pointsSeen.add(this);
+          pathSoFar.add(edge);
+          pathsWorker(paths, pointsSeen, pathSoFar, target);
+          pointsSeen.remove(this);
+          pathSoFar.remove(edge);
+        }
+      }
+    }
+    
+    
+    public Set<List<Edge>> pathsToVertex(Vertex target) {
+      Set<List<Edge>> ret = new HashSet<List<Edge>>();
+      Set<Vertex> pointsSeen = new HashSet<Vertex>();
+      List<Edge> pathSoFar = new ArrayList<Edge>();
+      pointsSeen.add(this);
+      
+      pathsWorker(ret, pointsSeen, pathSoFar, target);
+      
+      return ret;
+      
+    }
+    
     
   }
 
@@ -52,7 +91,18 @@ public class TreesCount {
     public int hashCode() {
       return a.hashCode() + b.hashCode();
     }
+    
+    
+    public Vertex other(Vertex thiz) {
+      if (a.equals(thiz)) return b;
+      if (b.equals(thiz)) return a;
+      throw new IllegalArgumentException("specified vertex is not on this edge!");
+    }
   }
+  
+  
+  
+  
 
   public int count(String[] graph) {
     
@@ -69,6 +119,9 @@ public class TreesCount {
         b.edges.add(e);
       }
     }
+    
+    
+    
     
     return 0;
   }
