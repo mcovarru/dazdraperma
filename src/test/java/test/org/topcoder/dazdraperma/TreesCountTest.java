@@ -35,7 +35,7 @@ public class TreesCountTest extends TestCase {
     
     assertEquals(1, paths.size());
     Path path = paths.iterator().next();
-    assertEquals(1, path.size());
+    assertEquals(1, path.length());
     Edge eret = path.iterator().next();
     assertTrue(eret.equals(e));
 
@@ -52,8 +52,8 @@ public class TreesCountTest extends TestCase {
     new Edge(v1, v3, 2);
     new Edge(v2, v3, 1);
     
-    assertEquals(1, v0.pathsToVertex(v1).size());  // 0:1
-    assertEquals(2, v0.pathsToVertex(v2).size());  // 
+    assertEquals(1, v0.pathsToVertex(v1).size());  
+    assertEquals(2, v0.pathsToVertex(v2).size());   
     assertEquals(4, v0.pathsToVertex(v3).size());
     assertEquals(1, v1.pathsToVertex(v2).size());
     assertEquals(2, v1.pathsToVertex(v3).size());

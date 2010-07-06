@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+
 public class TreesCount {
   
   
@@ -19,11 +20,15 @@ public class TreesCount {
     
     public Path() {
     }
-
-    public int size() {
-      return edges.size();
-    }
     
+    public int length() {
+      int length = 0;
+      System.out.println("path has " + edges.size() + " edges");
+      for (Edge edge : edges)
+        length += edge.length;
+      return length;
+    }    
+
     public void add(Edge e) {
       this.edges.add(e);
     }
@@ -32,35 +37,6 @@ public class TreesCount {
       this.edges.remove(edges.size() - 1);
     }
 
-    
-    public String toString() {
-      StringBuilder sb = new StringBuilder();
-      sb.append("{ ");
-
-      Vertex last = null;
-
-      if (edges.size() > 1) {
-        Vertex common = Vertex.inCommon(edges.get(0), edges.get(1));
-        Vertex first = edges.get(0).other(common);
-        sb.append("[ " + first.num + " -> " + common.num + " + ] --> ");
-        last = edges.get(1).other(common);
-        sb.append("[ " + common.num + " -> " + last.num + "] ");
-      }
-      
-      for (int i = 2; i < edges.size(); i++) {
-        
-        sb.append("[ " + last.num + " --> ");
-        last = edges.get(i).other(last);
-        sb.append(last.num + " ] ");
-      }
-      
-      sb.append (" }");
-        
-      
-      return sb.toString();
-    }
-
-    @Override
     public Iterator<Edge> iterator() {
       return edges.iterator();
     }
@@ -75,13 +51,9 @@ public class TreesCount {
     }
     
     
-    public static Vertex inCommon(Edge e1, Edge e2) {
-      if (e1.a.equals(e2.a) || e1.a.equals(e2.b)) return e1.a;
-      return e1.b;
-    }
-    
     public int num;
-    public Set<Edge> edges = new HashSet<Edge>();
+    private Set<Edge> edges = new HashSet<Edge>();
+
     
     public boolean equals(Object other) {
       Vertex o = (Vertex) other;
@@ -90,6 +62,14 @@ public class TreesCount {
     
     public int hashCode() {
       return num;
+    }
+    
+    public int distanceTo(Vertex other) {
+      Set<Path> pathsToVertex = pathsToVertex(other);
+      if (pathsToVertex.isEmpty())
+        return 0;
+      
+      return pathsToVertex.iterator().next().length();
     }
     
      
@@ -193,25 +173,86 @@ public class TreesCount {
   }
   
   
+  public static class EdgeCombinator implements Iterable<Set<Edge>> {
+    
+    private Edge[] edges;
+    
+    private long MAX;
+    
+    private int current = -1;
+
+    public EdgeCombinator(Edge [] edges) {
+      this.edges = edges;
+      this.MAX = Math.round(Math.pow(2, this.edges.length));
+    }
+
+    @Override
+    public Iterator<Set<Edge>> iterator() {
+      
+      return new Iterator<Set<Edge>>() {
+
+        public boolean hasNext() {
+          return current + 1 < MAX;
+        }
+
+
+        public Set<Edge> next() {
+          current++;
+          Set<Edge> edgeSet = new HashSet<Edge>();
+          
+          for (int i = 0; i < edges.length; i++)
+            if ((current & (1 << i)) != 0)
+              edgeSet.add(edges[i]);
+          
+
+          return edgeSet;
+        }
+
+        public void remove() {
+          throw new UnsupportedOperationException();
+        }
+        
+      };
+    }
+    
+  }
+  
   
   
 
   public int count(String[] graph) {
     
+    System.out.println("looking at problem with initial string " + graph[0]);
+    
     Vertex [] vertices = new Vertex[graph.length];
     for (int i = 0; i < graph.length; i++)
       vertices[i] = new Vertex(i);
     
+    List<Edge> edgeList = new ArrayList<Edge>();
+    
     for (int i = 0; i < graph.length; i++) {
-      for (int j = i; j < graph.length; j++) {
+      for (int j = i + 1; j < graph.length; j++) {
         Vertex a = vertices[i];
         Vertex b = vertices[j];
         
         // the Edge constructor adds the edge to the vertices
-        new Edge(a, b, Integer.valueOf(graph[i].charAt(j)));
+        // 0 means no edge
+        int length = Integer.valueOf(graph[i].charAt(j)) - '0';
+        if (length > 0) 
+          edgeList.add(new Edge(a, b, length));
       }
     }
     
+    int optimals[] = new int[graph.length];
+
+    Vertex zeroVertex = vertices[0];
+    for (int i = 1; i < graph.length; i++) {
+      optimals[i] = zeroVertex.distanceTo(vertices[i]);
+      System.out.println("optimals[" + i + "] = " + optimals[i]);
+    }
+    
+    Edge [] edges = new Edge[edgeList.size()];
+    edgeList.toArray(edges);
     
     
     
