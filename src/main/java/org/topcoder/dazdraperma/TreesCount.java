@@ -32,10 +32,12 @@ public class TreesCount {
   public class Edge {
     public Vertex a;
     public Vertex b;
+    public int length;
     
-    public Edge(Vertex a, Vertex b) {
+    public Edge(Vertex a, Vertex b, Integer length) {
       this.a = a;
       this.b = b;
+      this.length = length;
     }
     
     public boolean contains(Vertex v) {
@@ -62,7 +64,7 @@ public class TreesCount {
       for (int j = i; j < graph.length; j++) {
         Vertex a = vertices[i];
         Vertex b = vertices[j];
-        Edge e = new Edge(a, b);
+        Edge e = new Edge(a, b, Integer.valueOf(graph[i].charAt(j)));
         a.edges.add(e);
         b.edges.add(e);
       }
