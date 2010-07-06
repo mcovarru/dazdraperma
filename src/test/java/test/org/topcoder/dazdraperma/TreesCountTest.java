@@ -1,11 +1,10 @@
 package test.org.topcoder.dazdraperma;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.topcoder.dazdraperma.TreesCount;
 import org.topcoder.dazdraperma.TreesCount.Edge;
+import org.topcoder.dazdraperma.TreesCount.Path;
 import org.topcoder.dazdraperma.TreesCount.Vertex;
 
 import junit.framework.TestCase;
@@ -31,13 +30,13 @@ public class TreesCountTest extends TestCase {
     Edge e = new Edge(a, b, 1);
 
    
-    Set<List<Edge>> paths = a.pathsToVertex(b);
+    Set<Path> paths = a.pathsToVertex(b);
 
     
     assertEquals(1, paths.size());
-    List<Edge> path = paths.iterator().next();
+    Path path = paths.iterator().next();
     assertEquals(1, path.size());
-    Edge eret = path.get(0);
+    Edge eret = path.iterator().next();
     assertTrue(eret.equals(e));
 
     ////////////////////////////
@@ -53,12 +52,12 @@ public class TreesCountTest extends TestCase {
     new Edge(v1, v3, 2);
     new Edge(v2, v3, 1);
     
-    assertEquals(1, v0.pathsToVertex(v1).size());
-    //assertEquals(2, v0.pathsToVertex(v2).size());
-    //assertEquals(3, v0.pathsToVertex(v3).size());
-    //assertEquals(1, v1.pathsToVertex(v2).size());
-    //assertEquals(2, v1.pathsToVertex(v3).size());
-    //assertEquals(1, v2.pathsToVertex(v3).size());
+    assertEquals(1, v0.pathsToVertex(v1).size());  // 0:1
+    assertEquals(2, v0.pathsToVertex(v2).size());  // 
+    assertEquals(4, v0.pathsToVertex(v3).size());
+    assertEquals(1, v1.pathsToVertex(v2).size());
+    assertEquals(2, v1.pathsToVertex(v3).size());
+    assertEquals(1, v2.pathsToVertex(v3).size());
   }
   
   

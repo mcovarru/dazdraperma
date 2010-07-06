@@ -92,10 +92,7 @@ public class TreesCount {
       return num;
     }
     
-    public String toString() {
-      return "[Vertex " + num + "]";
-    }
-    
+     
     private void pathsWorker(Set<Path> paths, Set<Vertex> pointsSeen, Path pathSoFar, Vertex target) {
       for (Edge edge : edges) {
         
@@ -109,7 +106,6 @@ public class TreesCount {
           
         }
         else if (pointsSeen.contains(other)) {
-          // System.out.println(prefix + "we have already seen vertex " + other + ", ignoring");
           // cycle, ignore this edge
         }
         else {
@@ -188,10 +184,6 @@ public class TreesCount {
       return a.hashCode() + b.hashCode();
     }
     
-    
-    public String toString() {
-      return "[" + a.num + " --> " + b.num + "]";
-    }
     
     public Vertex other(Vertex thiz) {
       if (a.equals(thiz)) return b;
