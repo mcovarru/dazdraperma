@@ -23,7 +23,7 @@ public class TreesCount {
     
     public int length() {
       int length = 0;
-      System.out.println("path has " + edges.size() + " edges");
+      // System.out.println("path has " + edges.size() + " edges");
       for (Edge edge : edges)
         length += edge.length;
       return length;
@@ -39,6 +39,18 @@ public class TreesCount {
 
     public Iterator<Edge> iterator() {
       return edges.iterator();
+    }
+    
+    
+    public boolean contains(Edge e) {
+      return edges.contains(e);
+    }
+    
+    
+    public boolean containsNone(Set<Edge> otherEdges) {
+      Set<Edge> tmp = new HashSet<Edge>(edges);
+      tmp.removeAll(otherEdges);
+      return edges.size() == tmp.size();
     }
     
   }
@@ -179,11 +191,12 @@ public class TreesCount {
     
     private long MAX;
     
-    private int current = -1;
+    private int current = 0;
 
-    public EdgeCombinator(Edge [] edges) {
-      this.edges = edges;
-      this.MAX = Math.round(Math.pow(2, this.edges.length));
+    public EdgeCombinator(Set<Edge> edges) {
+      this.edges = new Edge[edges.size()];
+      edges.toArray(this.edges);
+      this.MAX = Math.round(Math.pow(2, this.edges.length)) - 1;
     }
 
     @Override
@@ -192,7 +205,7 @@ public class TreesCount {
       return new Iterator<Set<Edge>>() {
 
         public boolean hasNext() {
-          return current + 1 < MAX;
+          return current + 1 <= MAX;
         }
 
 
@@ -228,7 +241,7 @@ public class TreesCount {
     for (int i = 0; i < graph.length; i++)
       vertices[i] = new Vertex(i);
     
-    List<Edge> edgeList = new ArrayList<Edge>();
+    Set<Edge> edgeSet = new HashSet<Edge>();
     
     for (int i = 0; i < graph.length; i++) {
       for (int j = i + 1; j < graph.length; j++) {
@@ -239,23 +252,55 @@ public class TreesCount {
         // 0 means no edge
         int length = Integer.valueOf(graph[i].charAt(j)) - '0';
         if (length > 0) 
-          edgeList.add(new Edge(a, b, length));
+          edgeSet.add(new Edge(a, b, length));
       }
     }
     
-    int optimals[] = new int[graph.length];
-
     Vertex zeroVertex = vertices[0];
+    List<Set<Path>> pathSets = new ArrayList<Set<Path>>();
+    Set <Edge> essentialEdges = new HashSet<Edge>();
+    
+    // dummy zeroth element
+    pathSets.add(null);
     for (int i = 1; i < graph.length; i++) {
-      optimals[i] = zeroVertex.distanceTo(vertices[i]);
-      System.out.println("optimals[" + i + "] = " + optimals[i]);
+      Set<Path> paths = zeroVertex.pathsToVertex(vertices[i]);
+      pathSets.add(i, paths);
+      if (paths.size() == 1)
+        essentialEdges.addAll(paths.iterator().next().edges);
     }
     
-    Edge [] edges = new Edge[edgeList.size()];
-    edgeList.toArray(edges);
+    
+    Set<Edge> nonEssentialEdges = new HashSet<Edge>(edgeSet);
+    nonEssentialEdges.removeAll(essentialEdges);
+    
+
+
+    EdgeCombinator combinator = new EdgeCombinator(nonEssentialEdges);
+    
+    // look for a path from the zero vertex to another vertex that does 
+    // not contain any of the edges in this combination.  if we can find
+    // such a path for all vertexes, then this combination of deletions 
+    // is workable and we can increase our count.
+    
+    int count = 0;
+    
+    for (Set<Edge> edgeCombo : combinator) {
+
+      for (int i = 1; i < graph.length; i++) {
+        Set<Path> paths = pathSets.get(i);
+        for (Path path : paths) {
+          if (path.containsNone(edgeCombo)) break;
+        }
+        break;
+      }
+      count++;
+    }
     
     
     
-    return 0;
+    
+    
+    
+    return count;
   }
 }
