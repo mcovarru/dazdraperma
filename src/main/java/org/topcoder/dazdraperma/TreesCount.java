@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 
@@ -185,49 +186,68 @@ public class TreesCount {
   }
   
   
-  public static class EdgeCombinator implements Iterable<Set<Edge>> {
-    
-    private Edge[] edges;
-    
-    private long MAX;
-    
-    private int current = 0;
+  
+  public static class CombinationGenerator<E> implements Iterator<Set<E>>,
+      Iterable<Set<E>> {
 
-    public EdgeCombinator(Set<Edge> edges) {
-      this.edges = new Edge[edges.size()];
-      edges.toArray(this.edges);
-      this.MAX = Math.round(Math.pow(2, this.edges.length)) - 1;
-    }
+    private final List<E> set;
+    private int[] currentIdxs;
 
-    @Override
-    public Iterator<Set<Edge>> iterator() {
+    public CombinationGenerator(Set<E> set, int r) {
+      if (r < 1 || r > set.size()) {
+        throw new IllegalArgumentException("r < 1 || r > set.size()");
+      }
+      this.set = new ArrayList<E>(set);
+      this.currentIdxs = new int[r];
+      for (int i = 0; i < r; i++)
+        this.currentIdxs[i] = i;
       
-      return new Iterator<Set<Edge>>() {
-
-        public boolean hasNext() {
-          return current + 1 <= MAX;
-        }
-
-
-        public Set<Edge> next() {
-          current++;
-          Set<Edge> edgeSet = new HashSet<Edge>();
-          
-          for (int i = 0; i < edges.length; i++)
-            if ((current & (1 << i)) != 0)
-              edgeSet.add(edges[i]);
-          
-
-          return edgeSet;
-        }
-
-        public void remove() {
-          throw new UnsupportedOperationException();
-        }
-        
-      };
     }
-    
+
+    public boolean hasNext() {
+      return currentIdxs != null;
+    }
+
+    public Iterator<Set<E>> iterator() {
+      return this;
+    }
+
+    public Set<E> next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      Set<E> currentCombination = new HashSet<E>();
+      for (int i : currentIdxs) {
+        currentCombination.add(set.get(i));
+      }
+      setNextIndexes();
+      return currentCombination;
+    }
+
+    public void remove() {
+      throw new UnsupportedOperationException();
+    }
+
+    private void setNextIndexes() {
+      for (int i = currentIdxs.length - 1, j = set.size() - 1; i >= 0; i--, j--) {
+        if (currentIdxs[i] != j) {
+          currentIdxs[i]++;
+          for (int k = i + 1; k < currentIdxs.length; k++) {
+            currentIdxs[k] = currentIdxs[k - 1] + 1;
+          }
+          return;
+        }
+      }
+      currentIdxs = null;
+    }
+  }
+
+  
+  public static class EdgeKnockoutCombinator extends CombinationGenerator<Edge> {
+    public EdgeKnockoutCombinator(Set<Edge> edges, int numVertices) {
+      super(edges, numVertices - 1);
+    }
+   
   }
   
   
@@ -256,26 +276,10 @@ public class TreesCount {
       }
     }
     
-    Vertex zeroVertex = vertices[0];
+
+
     List<Set<Path>> pathSets = new ArrayList<Set<Path>>();
-    Set <Edge> essentialEdges = new HashSet<Edge>();
-    
-    // dummy zeroth element
-    pathSets.add(null);
-    for (int i = 1; i < graph.length; i++) {
-      Set<Path> paths = zeroVertex.pathsToVertex(vertices[i]);
-      pathSets.add(i, paths);
-      if (paths.size() == 1)
-        essentialEdges.addAll(paths.iterator().next().edges);
-    }
-    
-    
-    Set<Edge> nonEssentialEdges = new HashSet<Edge>(edgeSet);
-    nonEssentialEdges.removeAll(essentialEdges);
-    
-
-
-    EdgeCombinator combinator = new EdgeCombinator(nonEssentialEdges);
+    EdgeKnockoutCombinator combinator = new EdgeKnockoutCombinator(edgeSet, vertices.length);
     
     // look for a path from the zero vertex to another vertex that does 
     // not contain any of the edges in this combination.  if we can find
@@ -287,7 +291,7 @@ public class TreesCount {
     for (Set<Edge> edgeCombo : combinator) {
 
       for (int i = 1; i < graph.length; i++) {
-        Set<Path> paths = pathSets.get(i);
+        Set<Path> paths = pathSets.get(i - 1);
         for (Path path : paths) {
           if (path.containsNone(edgeCombo)) break;
         }
