@@ -121,7 +121,7 @@ public class TreesCount {
       
       pathsWorker(tmpPaths, pointsSeen, pathSoFar, target);
       
-      // prune suboptimal paths
+      // find optimal distance, prune suboptimal paths
       int minPath = 10;
       
       for (Path path : tmpPaths) {
@@ -187,15 +187,16 @@ public class TreesCount {
   
   
   
-  public static class CombinationGenerator<E> implements Iterator<Set<E>>,
-      Iterable<Set<E>> {
+  public static class CombinationGenerator<E> implements
+    Iterator<Set<E>>,
+    Iterable<Set<E>> {
 
     private final List<E> set;
     private int[] currentIdxs;
 
     public CombinationGenerator(Set<E> set, int r) {
-      if (r < 1 || r > set.size()) {
-        throw new IllegalArgumentException("r < 1 || r > set.size()");
+      if (r < 0 || r > set.size()) {
+        throw new IllegalArgumentException("r < 0 || r > set.size()");
       }
       this.set = new ArrayList<E>(set);
       this.currentIdxs = new int[r];
@@ -245,7 +246,25 @@ public class TreesCount {
   
   public static class EdgeKnockoutCombinator extends CombinationGenerator<Edge> {
     public EdgeKnockoutCombinator(Set<Edge> edges, int numVertices) {
-      super(edges, numVertices - 1);
+      // we want the resulting graph to be a tree.  trees have V - 1 edges, where
+      // V is the number of vertices.  However, what we really want this combinator
+      // to spit out are combinations of edges to *knock out* of the graph in order
+      // to yield trees.  If E is the number of edges, X is the number of edges to 
+      // knock out (or the 'k' in our 'n choose k' combinatorics), to satisfy the
+      // tree property:
+      //
+      // E - X = V - 1
+      //
+      // -->
+      //
+      // -X = -E + V -1
+      //
+      // -->
+      //
+      //  X = E - V + 1
+      
+
+      super(edges, edges.size() - numVertices + 1);
     }
    
   }
@@ -254,8 +273,6 @@ public class TreesCount {
   
 
   public int count(String[] graph) {
-    
-    System.out.println("looking at problem with initial string " + graph[0]);
     
     Vertex [] vertices = new Vertex[graph.length];
     for (int i = 0; i < graph.length; i++)
@@ -278,32 +295,41 @@ public class TreesCount {
     
 
 
-    List<Set<Path>> pathSets = new ArrayList<Set<Path>>();
     EdgeKnockoutCombinator combinator = new EdgeKnockoutCombinator(edgeSet, vertices.length);
     
     // look for a path from the zero vertex to another vertex that does 
     // not contain any of the edges in this combination.  if we can find
-    // such a path for all vertexes, then this combination of deletions 
+    // such a path for all vertices, then this combination of deletions 
     // is workable and we can increase our count.
     
+    Vertex origin = vertices[0];
     int count = 0;
     
     for (Set<Edge> edgeCombo : combinator) {
 
+      boolean allVerticesReachableWithEdgeSetRemoved = true;
+      
       for (int i = 1; i < graph.length; i++) {
-        Set<Path> paths = pathSets.get(i - 1);
+        
+        Set<Path> paths = origin.pathsToVertex(vertices[i]);
+        boolean foundPathFreeOfRemovedEdges = false;
+        
         for (Path path : paths) {
-          if (path.containsNone(edgeCombo)) break;
+          if (path.containsNone(edgeCombo)) {
+            // we're okay for this target vertex, look
+            // at the next target vertex
+            foundPathFreeOfRemovedEdges = true;
+            break;
+          }
         }
-        break;
+        if (!foundPathFreeOfRemovedEdges) {
+          allVerticesReachableWithEdgeSetRemoved = false;
+          break;
+        }
       }
-      count++;
+      if (allVerticesReachableWithEdgeSetRemoved)
+        count++;
     }
-    
-    
-    
-    
-    
     
     return count;
   }
