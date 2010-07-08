@@ -24,7 +24,6 @@ public class TreesCount {
     
     public int length() {
       int length = 0;
-      // System.out.println("path has " + edges.size() + " edges");
       for (Edge edge : edges)
         length += edge.length;
       return length;
@@ -41,12 +40,7 @@ public class TreesCount {
     public Iterator<Edge> iterator() {
       return edges.iterator();
     }
-    
-    
-    public boolean contains(Edge e) {
-      return edges.contains(e);
-    }
-    
+  
     
     public boolean containsNone(Set<Edge> otherEdges) {
       Set<Edge> tmp = new HashSet<Edge>(edges);
@@ -63,7 +57,6 @@ public class TreesCount {
       this.num = num;
     }
     
-    
     public int num;
     private Set<Edge> edges = new HashSet<Edge>();
 
@@ -75,14 +68,6 @@ public class TreesCount {
     
     public int hashCode() {
       return num;
-    }
-    
-    public int distanceTo(Vertex other) {
-      Set<Path> pathsToVertex = pathsToVertex(other);
-      if (pathsToVertex.isEmpty())
-        return 0;
-      
-      return pathsToVertex.iterator().next().length();
     }
     
      
