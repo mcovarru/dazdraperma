@@ -101,5 +101,10 @@ public class GameWithGraphAndTree {
 
     }
   }
+  
+  
+  public int calc(String[] graph, String[] tree) {
+    return 0;
+  }
 
 }
