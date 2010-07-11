@@ -1,5 +1,10 @@
 package org.topcoder.dazdraperma;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
+
 public class GameWithGraphAndTree {
   // --------------------------------------
   // Systematically generate permutations.
@@ -14,11 +19,14 @@ public class GameWithGraphAndTree {
     return ret;
   }
 
-  public class PermutationGenerator {
+  public class PermutationGenerator<E> implements Iterator<List<E>>, Iterable<List<E>> {
 
     private int[] a;
     private int numLeft;
     private int total;
+    private E [] stuffToPermute;
+    
+    private List<E> buffer;
 
     // -----------------------------------------------------------
     // Constructor. WARNING: Don't make n too large.
@@ -29,10 +37,12 @@ public class GameWithGraphAndTree {
     // why we use BigInteger instead.
     // ----------------------------------------------------------
 
-    public PermutationGenerator(int n) {
+    public PermutationGenerator(int n, E [] stuff) {
       if (n < 0) {
         throw new IllegalArgumentException("Min 0");
       }
+      stuffToPermute = stuff;
+      buffer = new ArrayList<E>(stuff.length);
       a = new int[n];
       total = factorial(n);
       reset();
@@ -52,13 +62,24 @@ public class GameWithGraphAndTree {
     // --------------------------------------------------------
     // Generate next permutation (algorithm from Rosen p. 284)
     // --------------------------------------------------------
+    
+    private List<E> returnPermutation() {
+      for (int i = 0; i < a.length; i++)
+        buffer.set(i, stuffToPermute[a[i]]);
+      
+      return buffer;  
+      
+    }
 
-    public int[] getNext() {
+    public List<E> next() {
 
       if (numLeft == total) {
         numLeft--;
-        return a;
+        return returnPermutation();
       }
+      
+      if (numLeft < 0)
+        throw new NoSuchElementException();
 
       int temp;
 
@@ -97,17 +118,32 @@ public class GameWithGraphAndTree {
       }
 
       numLeft--;
-      return a;
+      return returnPermutation();
 
+    }
+
+
+    public Iterator<List<E>> iterator() {
+      return this;
+    }
+
+    public boolean hasNext() {
+      return numLeft >= 0;
+    }
+
+
+    public void remove() {
+      throw new UnsupportedOperationException();
+      
     }
   }
   
   
-  public static class Pack {
+  public static class Graph {
     
     public int [] [] packing;
     
-    public Pack(String [] graph) {
+    public Graph(String [] graph) {
       packing = new int[graph.length][(graph.length + 1)/2];
       
       for (int g = 0; g < graph.length; g++) {
@@ -124,7 +160,7 @@ public class GameWithGraphAndTree {
      * @param other
      * @return
      */
-    public boolean canOverlay(Pack other) {
+    public boolean canOverlay(Graph other) {
      
       int negatory = ((int) Math.pow(2, packing.length)) - 1;
       
@@ -143,7 +179,13 @@ public class GameWithGraphAndTree {
 
   
   public int calc(String[] graph, String[] tree) {
-    return 0;
+    
+    Graph g = new Graph(graph);
+    
+    Graph t = new Graph(tree);
+    
+    int count = 0;
+    return count;
   }
 
 }
