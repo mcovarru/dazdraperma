@@ -103,6 +103,45 @@ public class GameWithGraphAndTree {
   }
   
   
+  public static class Pack {
+    
+    public int [] [] packing;
+    
+    public Pack(String [] graph) {
+      packing = new int[graph.length][(graph.length + 1)/2];
+      
+      for (int g = 0; g < graph.length; g++) {
+        for (int c = 0; c < graph.length; c++) {
+          packing[g][c/2] *= 2;
+          if (graph[g].charAt(c) == 'Y')
+            packing[g][c/2]++;
+        }
+      }
+    }
+    
+    /**
+     * Can this other Pack be overlaid upon us?
+     * @param other
+     * @return
+     */
+    public boolean canOverlay(Pack other) {
+     
+      int negatory = ((int) Math.pow(2, packing.length)) - 1;
+      
+      for (int g = 0; g < packing.length; g++) {
+        for (int c = 0; c < packing[g].length; c++) {
+          if (((packing[g][c] ^ negatory) & other.packing[g][c]) != 0)
+            return false;
+        }
+      }
+      
+      return true;
+    }    
+  }
+  
+  
+
+  
   public int calc(String[] graph, String[] tree) {
     return 0;
   }

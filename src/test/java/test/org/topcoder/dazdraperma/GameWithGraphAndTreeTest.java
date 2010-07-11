@@ -1,6 +1,8 @@
 package test.org.topcoder.dazdraperma;
 
 import org.topcoder.dazdraperma.GameWithGraphAndTree;
+import org.topcoder.dazdraperma.GameWithGraphAndTree.Pack;
+
 
 import junit.framework.TestCase;
 
@@ -16,6 +18,44 @@ public class GameWithGraphAndTreeTest extends TestCase {
   protected void tearDown() throws Exception {
     super.tearDown();
     this.game = null;
+  }
+  
+  
+  public void testPack() {
+   
+    Pack pack;
+    
+    pack = new Pack(new String [] {"NY", "YY"});
+    assertEquals(1, pack.packing[0][0]);
+    assertEquals(3, pack.packing[1][0]);
+    
+    
+    pack = new Pack(new String [] {"NYNY", "YYYY", "NNNN", "NNYY"});
+    
+    assertEquals(1, pack.packing[0][0]);
+    assertEquals(1, pack.packing[0][1]);
+    assertEquals(3, pack.packing[1][0]);
+    assertEquals(3, pack.packing[1][1]);
+    assertEquals(0, pack.packing[2][0]);
+    assertEquals(0, pack.packing[2][1]);
+    assertEquals(0, pack.packing[3][0]);
+    assertEquals(3, pack.packing[3][1]);
+    
+  }
+  
+  
+  public void testPackOverlay() {
+    
+    Pack g, t;
+    
+    g = new Pack(new String [] {"NY", "YY"});
+    t = new Pack(new String [] {"NY", "YY"});    
+    assertTrue(g.canOverlay(t));
+    
+    g = new Pack(new String [] {"YY", "YY"});
+    assertTrue(g.canOverlay(t));
+    
+    assertFalse(t.canOverlay(g));
   }
   
   
